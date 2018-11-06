@@ -1,8 +1,9 @@
-import sys,time
+import sys, time
 from socket import socket
-import ssl,masscan
+import ssl, masscan
 import M2Crypto
-import OpenSSL,xml,threading
+import OpenSSL, xml, threading
+
 vers = sys.version[0]
 if vers == "2":
     import Queue as queue
@@ -20,12 +21,13 @@ subs_ssl = []
 
 try:
     mas = masscan.PortScanner()
-    mas.scan(ip_range,ports='443')
+    mas.scan(ip_range, ports='443')
     for host in mas.all_hosts:
         subs_ssl.append(host)
-except (xml.etree.ElementTree.ParseError,masscan.masscan.NetworkConnectionError) as e:
+except (xml.etree.ElementTree.ParseError, masscan.masscan.NetworkConnectionError) as e:
     print('Probably iprange\'s is not valid/down')
     pass
+
 
 def process_cert_subs(i):
     try:
@@ -35,14 +37,16 @@ def process_cert_subs(i):
         cnames = cert_val.split('CN=')[1]
         if len(cnames) > 0:
             print(cnames)
-    except SSLEOFError as e:
+    except (ssl.SSLEOFError, ssl.SSLError) as e:
         pass
+
 
 def process_queue():
     while not q.empty():
         current_ip = q.get()
         process_cert_subs(current_ip)
         q.task_done()
+
 
 if len(subs_ssl) > 0:
     for i in subs_ssl:
